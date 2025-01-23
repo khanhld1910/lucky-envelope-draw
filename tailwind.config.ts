@@ -57,13 +57,13 @@ export default {
       },
       keyframes: {
         'envelope-open': {
-          '0%': { transform: 'scale(1)' },
-          '50%': { transform: 'scale(1.1)' },
-          '100%': { transform: 'scale(1)' },
+          '0%': { transform: 'scale(0.8)', opacity: '0' },
+          '50%': { transform: 'scale(1.1)', opacity: '0.5' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         }
       },
       animation: {
-        'envelope-open': 'envelope-open 0.3s ease-in-out',
+        'envelope-open': 'envelope-open 0.5s ease-out forwards',
       },
       backgroundImage: {
         'lucky-pattern': "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 50l-25-25L50 0l25 25L50 50zm0 0l25 25L50 100l-25-25L50 50z' fill='%23ffd700' fill-opacity='0.05'/%3E%3C/svg%3E\")",
