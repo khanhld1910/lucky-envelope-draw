@@ -118,23 +118,40 @@ const Index = () => {
     });
   };
 
-  const exportToSVG = () => {
-    const svgData = document.querySelector('.envelope-grid')?.innerHTML;
-    if (svgData) {
-      const blob = new Blob([`
-        <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">
-          ${svgData}
-        </svg>
-      `], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'lucky-envelopes.svg';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+  const exportToCSV = () => {
+    // Filter only opened envelopes with names and amounts
+    const openedEnvelopes = envelopes.filter(env => env.isOpen && env.userName && env.amount);
+    
+    if (openedEnvelopes.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no opened envelopes to export.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    // Create CSV content
+    const csvContent = [
+      "Name,Amount (VNĐ)", // Header row
+      ...openedEnvelopes.map(env => `${env.userName},${env.amount?.toLocaleString()}`)
+    ].join("\n");
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'lucky-money-results.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Successful",
+      description: "The results have been exported to CSV",
+    });
   };
 
   return (
@@ -191,7 +208,7 @@ const Index = () => {
         </div>
 
         <div className="flex justify-end mb-4">
-          <Button onClick={exportToSVG} variant="outline">
+          <Button onClick={exportToCSV} variant="outline">
             <Download className="w-4 h-4 mr-2" />
             Export Results
           </Button>
