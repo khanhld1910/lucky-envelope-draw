@@ -4,6 +4,8 @@ import NameInputDialog from "@/components/NameInputDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Download } from "lucide-react";
 
 interface EnvelopeData {
   isOpen: boolean;
@@ -19,12 +21,10 @@ interface CashType {
 const Index = () => {
   const { toast } = useToast();
   const [envelopes, setEnvelopes] = useState<EnvelopeData[]>([]);
-  const [selectedEnvelopeIndex, setSelectedEnvelopeIndex] = useState<number | null>(
-    null
-  );
+  const [selectedEnvelopeIndex, setSelectedEnvelopeIndex] = useState<number | null>(null);
   const [remainingAmounts, setRemainingAmounts] = useState<number[]>([]);
+  const [nameList, setNameList] = useState<string>("");
   
-  // New state for cash type inputs
   const [cashTypes, setCashTypes] = useState<CashType[]>([]);
   const [newAmount, setNewAmount] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
@@ -46,7 +46,6 @@ const Index = () => {
     setNewAmount("");
     setNewQuantity("");
 
-    // Update envelopes and remaining amounts
     const totalEnvelopes = [...envelopes];
     const newRemainingAmounts = [...remainingAmounts];
     
@@ -97,6 +96,47 @@ const Index = () => {
     });
   };
 
+  const handleNameListChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNameList(e.target.value);
+  };
+
+  const handleProcessNameList = () => {
+    const names = nameList.split('\n').filter(name => name.trim());
+    if (names.length === 0) {
+      toast({
+        title: "No Names Found",
+        description: "Please enter at least one name",
+        variant: "destructive",
+      });
+      return;
+    }
+    setNameList("");
+    names.forEach(name => {
+      if (remainingAmounts.length > 0) {
+        handleNameSubmit(name.trim());
+      }
+    });
+  };
+
+  const exportToSVG = () => {
+    const svgData = document.querySelector('.envelope-grid')?.innerHTML;
+    if (svgData) {
+      const blob = new Blob([`
+        <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+          ${svgData}
+        </svg>
+      `], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'lucky-envelopes.svg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white bg-lucky-pattern">
       <div className="container py-8 px-4">
@@ -104,14 +144,13 @@ const Index = () => {
           Lì Xì Lucky Draw
         </h1>
 
-        {/* Cash Type Input Section */}
         <div className="max-w-xl mx-auto mb-8 p-4 bg-white rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Add Cash Types</h2>
           <div className="flex gap-4 mb-4">
             <div className="flex-1">
               <Input
                 type="number"
-                placeholder="Amount (đ)"
+                placeholder="Amount (VNĐ)"
                 value={newAmount}
                 onChange={(e) => setNewAmount(e.target.value)}
                 min="1"
@@ -129,7 +168,6 @@ const Index = () => {
             <Button onClick={handleAddCashType}>Add</Button>
           </div>
 
-          {/* Display current cash types */}
           <div className="space-y-2">
             {cashTypes.map((type, index) => (
               <div key={index} className="text-sm text-gray-600">
@@ -137,10 +175,29 @@ const Index = () => {
               </div>
             ))}
           </div>
+
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2">Name List</h3>
+            <Textarea
+              placeholder="Enter names (one per line)"
+              value={nameList}
+              onChange={handleNameListChange}
+              className="mb-2"
+            />
+            <Button onClick={handleProcessNameList} className="w-full">
+              Process Names
+            </Button>
+          </div>
         </div>
 
-        {/* Envelopes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <Button onClick={exportToSVG} variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Export Results
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto envelope-grid">
           {envelopes.map((envelope, index) => (
             <Envelope
               key={index}
